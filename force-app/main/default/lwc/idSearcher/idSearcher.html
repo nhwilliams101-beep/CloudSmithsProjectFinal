@@ -1,0 +1,120 @@
+<template>
+    <lightning-card title="South Africa Public Holiday Checker" icon-name="standard:event">
+        <div class="slds-p-around_medium slds-is-relative">
+            
+            <div class="slds-box slds-theme_info slds-m-bottom_medium">
+                <div class="slds-media">
+                    <div class="slds-media__figure">
+                        <lightning-icon icon-name="utility:info" variant="inverse" size="small"></lightning-icon>
+                    </div>
+                    <div class="slds-media__body">
+                        <p>Enter your 13-digit ID to decode your ID and see public holidays from that year.</p>
+                    </div>
+                </div>
+            </div>
+
+            <template if:true={isLoading}>
+                <lightning-spinner alternative-text="Searching..." size="medium"></lightning-spinner>
+            </template>
+
+            <div class="slds-form-element">
+                <lightning-input 
+                    type="text" 
+                    label="Enter 13-Digit ID Number" 
+                    value={idNumber}
+                    max-length="13"
+                    onchange={handleInputChange}
+                    placeholder="Ex: 9202205000082"
+                    class="id-input">
+                </lightning-input>
+
+                <template if:true={errorMessage}>
+                    <div class="slds-media slds-media_center slds-m-top_xx-small">
+                        <div class="slds-media__figure">
+                            <lightning-icon icon-name="utility:error" variant="error" size="xx-small"></lightning-icon>
+                        </div>
+                        <div class="slds-media__body">
+                            <p class="slds-text-color_error slds-text-body_small">{errorMessage}</p>
+                        </div>
+                    </div>
+                </template>
+
+                <template if:true={isValid}>
+                    <div class="slds-media slds-media_center slds-m-top_xx-small">
+                        <div class="slds-media__figure">
+                            <lightning-icon icon-name="utility:check" variant="success" size="xx-small"></lightning-icon>
+                        </div>
+                        <div class="slds-media__body">
+                            <p class="slds-text-color_success slds-text-body_small">ID is valid.</p>
+                        </div>
+                    </div>
+                </template>
+
+                <lightning-button 
+                    label="Search" 
+                    variant="brand" 
+                    onclick={handleSearch} 
+                    disabled={isButtonDisabled}
+                    class="slds-m-top_small">
+                </lightning-button>
+            </div>
+
+            <template if:true={results}>
+                <div class="slds-m-top_large slds-p-top_medium slds-border_top">
+                    
+                    <template if:true={isBornOnHoliday}>
+                        <div class="slds-scoped-notification slds-media slds-media_center slds-theme_success slds-m-bottom_medium">
+                            <div class="slds-media__figure">
+                                <lightning-icon icon-name="utility:favorite" variant="inverse" size="small"></lightning-icon>
+                            </div>
+                            <div class="slds-media__body">
+                                <p>✨ <b>Special Day!</b> You were born on: <b>{holidayName}</b>.</p>
+                            </div>
+                        </div>
+                    </template>
+
+                    <template if:false={isBornOnHoliday}>
+                        <div class="slds-scoped-notification slds-media slds-media_center slds-theme_info slds-m-bottom_medium">
+                            <div class="slds-media__figure">
+                                <lightning-icon icon-name="utility:info" variant="inverse" size="small"></lightning-icon>
+                            </div>
+                            <div class="slds-media__body">
+                                <p>You were not born on a public holiday.</p>
+                            </div>
+                        </div>
+                    </template>
+
+                    <div class="slds-grid slds-wrap slds-box slds-theme_shade">
+                        <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-3 slds-p-around_x-small">
+                            <p>DOB: <b>{results.dob}</b></p>
+                        </div>
+                        <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-3 slds-p-around_x-small">
+                            <p>Gender: <b>{results.gender}</b></p>
+                        </div>
+                        <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-3 slds-p-around_x-small">
+                            <p>Status: <b>{results.citizenStatus}</b></p>
+                        </div>
+                    </div>
+
+                    <h3 class="slds-text-heading_small slds-m-top_medium slds-m-bottom_x-small">Holidays in {results.birthYear}</h3>
+                    <table class="slds-table slds-table_bordered slds-table_cell-buffer">
+                        <thead>
+                            <tr class="slds-line-height_reset">
+                                <th scope="col">Holiday Name</th>
+                                <th scope="col">Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template for:each={results.holidays} for:item="h">
+                                <tr key={h.name}>
+                                    <td>{h.name}</td>
+                                    <td>{h.date.iso}</td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+            </template>
+        </div>
+    </lightning-card>
+</template>
