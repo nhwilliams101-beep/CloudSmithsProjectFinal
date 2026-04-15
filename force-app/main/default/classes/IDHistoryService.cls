@@ -1,7 +1,6 @@
 /**
  * SERVICE LAYER
- * This class runs in "System Mode" to allow Guest Users to 
- * increment the search counter on existing records.
+ * This class is responsible for handling all interactions with the ID_Search_History__c object
  */
 public without sharing class IDHistoryService {
     
