@@ -8,7 +8,7 @@
                         <lightning-icon icon-name="utility:info" variant="inverse" size="small"></lightning-icon>
                     </div>
                     <div class="slds-media__body">
-                        <p>Enter your 13-digit ID to decode your ID and see public holidays from that year.</p>
+                        <p>Enter your 13-digit ID to decode your details and see public holidays from your birth year.</p>
                     </div>
                 </div>
             </div>
@@ -96,7 +96,7 @@
                         </div>
                     </div>
 
-                    <h3 class="slds-text-heading_small slds-m-top_medium slds-m-bottom_x-small">Holidays in {results.birthYear}</h3>
+                    <h3 class="slds-text-heading_small slds-m-top_medium slds-m-bottom_x-small">Holidays in the birth year</h3>
                     <table class="slds-table slds-table_bordered slds-table_cell-buffer">
                         <thead>
                             <tr class="slds-line-height_reset">
@@ -108,8 +108,7 @@
                             <template for:each={results.holidays} for:item="h">
                                 <tr key={h.name}>
                                     <td>{h.name}</td>
-                                    <td>{h.date.iso}</td>
-                                </tr>
+                                    <td>{h.iso}</td> </tr>
                             </template>
                         </tbody>
                     </table>

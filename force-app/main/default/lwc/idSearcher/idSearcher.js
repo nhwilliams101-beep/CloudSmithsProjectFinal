@@ -11,45 +11,48 @@ export default class IdSearcher extends LightningElement {
     @track isBornOnHoliday = false;
     @track holidayName = '';
 
+    /**
+     * Handles real-time validation as the user types
+     */
     handleInputChange(event) {
         this.idNumber = event.target.value;
         
-        // This resets results and validates on each keystroke
+        // Reset state on every keystroke
         this.results = null;
         this.isValid = false; 
         this.isButtonDisabled = true;
         this.isBornOnHoliday = false;
+        this.holidayName = '';
 
-        // This checks if the field is empty annd clears everything
         if (!this.idNumber) {
             this.errorMessage = '';
         } 
-        // This checks if the user is typing and the ID number is not yet valid
         else if (this.idNumber.length < 13) {
             this.errorMessage = 'Please enter a valid ID number.';
             
-            // THis checks for letters being typed 
+            // Check for non-numeric characters
             if (!/^\d+$/.test(this.idNumber)) {
                 this.errorMessage = 'ID numbers contain digits only.';
             }
         } 
-        // This runs final checks exactly 13 digits 
         else if (this.idNumber.length === 13) {
             if (this.luhnCheck(this.idNumber)) {
                 this.isValid = true;
                 this.isButtonDisabled = false;
-                this.errorMessage = ''; // Clear error because it's now valid
+                this.errorMessage = ''; 
             } else {
-                this.errorMessage = 'Please enter a valid ID number.';
+                this.errorMessage = 'Invalid ID number (failed checksum).';
                 this.isValid = false;
             }
         }
-        // Over 13 digits. This is not particularly necessary because of field length
         else {
             this.errorMessage = 'Too many digits. A valid ID number has 13 digits.';
         }
     }
-    // This Luhn check is used to check validity of ID number
+
+    /**
+     * Standard Luhn Algorithm for South African ID validation
+     */
     luhnCheck(id) {
         let sum = 0;
         let shouldDouble = false;
@@ -65,6 +68,9 @@ export default class IdSearcher extends LightningElement {
         return (sum % 10 === 0);
     }
 
+    /**
+     * Calls Apex to process data and save history
+     */
     async handleSearch() {
         this.isLoading = true;
         this.errorMessage = '';
@@ -73,24 +79,37 @@ export default class IdSearcher extends LightningElement {
         try {
             const data = await processIDSearch({ idNumber: this.idNumber });
             this.results = data;
+
             if (this.results && this.results.holidays) {
                 this.checkBirthHoliday();
             } else if (!this.results) {
                 this.errorMessage = 'No record found for this ID.';
             }
         } catch (error) {
+            // Catches AuraHandledExceptions from Apex
             this.errorMessage = 'System error: ' + (error.body ? error.body.message : error.message);
         } finally {
             this.isLoading = false;
         }
     }
-    // This checks for a holiday on the birth date
+
+    /**
+     * Compares the DOB from the ID (YYMMDD) against the simplified holiday list
+     */
     checkBirthHoliday() {
         if (!this.idNumber || !this.results.holidays) return;
+
+        // Extract YYMMDD from the ID number
         const idDatePart = this.idNumber.substring(0, 6);
+
+        // 'h' is now a flat object { iso: 'YYYY-MM-DD', name: '...' } from our cleaned Apex
         const match = this.results.holidays.find(h => {
-            const formattedHoliday = h.date.iso.replace(/-/g, '').substring(2);
-            return formattedHoliday === idDatePart;
+            if (h.iso) {
+                // Convert YYYY-MM-DD to YYMMDD
+                const formattedHoliday = h.iso.replace(/-/g, '').substring(2, 8);
+                return formattedHoliday === idDatePart;
+            }
+            return false;
         });
 
         if (match) {
@@ -98,6 +117,7 @@ export default class IdSearcher extends LightningElement {
             this.holidayName = match.name;
         } else {
             this.isBornOnHoliday = false;
+            this.holidayName = '';
         }
     }
 }
